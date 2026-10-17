@@ -799,9 +799,9 @@ function showVictoryNameEntry(scene) {
 function createNameEntryUI(scene) {
   scene.nameEntryContainer = scene.add.container(0, 0).setVisible(false);
 
-  // 1. Fondo oscuro de marco dorado añadido PRIMERO (capa base)
+  // 1. Fondo oscuro sólido con marco dorado
   const bg = scene.add.rectangle(W / 2, H / 2, 640, 420, 0x05070a, 0.98)
-    .setStrokeStyle(3, 0xffd700, 1);
+    .setStrokeStyle(4, 0xffd700, 1);
 
   const title = scene.add.text(W / 2, 130, '¡VICTORIA! ¡EL SOL SALIÓ!', {
     fontFamily: 'monospace', fontSize: '28px', fontStyle: 'bold', color: '#ffd700',
@@ -812,31 +812,32 @@ function createNameEntryUI(scene) {
   }).setOrigin(0.5);
 
   const prompt = scene.add.text(W / 2, 215, 'REGISTRA TUS INICIALES (3 LETRAS):', {
-    fontFamily: 'monospace', fontSize: '15px', fontStyle: 'bold', color: '#ffffff',
+    fontFamily: 'monospace', fontSize: '16px', fontStyle: 'bold', color: '#ffffff',
   }).setOrigin(0.5);
 
   scene.nameEntryContainer.add([bg, title, scene.victoryScoreText, prompt]);
 
-  // 2. Casillas y letras añadidas DESPUÉS (garantizado encima del fondo bg)
+  // 2. Casillas con fondo contrastado y letras en BLANCO PURO GRANDE
   scene.letterSlots = [];
   [-80, 0, 80].forEach((ox, i) => {
-    const slotBg = scene.add.rectangle(W / 2 + ox, 280, 64, 76, 0x0f172a, 1).setStrokeStyle(3, 0x334e68);
+    // Fondo de casilla azul marino con borde grueso
+    const slotBg = scene.add.rectangle(W / 2 + ox, 280, 68, 80, 0x1e293b, 1).setStrokeStyle(3, 0x64748b);
+    // Letra en blanco puro (#ffffff) con tamaño 46px
     const letterText = scene.add.text(W / 2 + ox, 280, 'A', {
-      fontFamily: 'monospace', fontSize: '42px', fontStyle: 'bold', color: '#ffffff',
+      fontFamily: 'monospace', fontSize: '46px', fontStyle: 'bold', color: '#ffffff',
     }).setOrigin(0.5);
     scene.letterSlots.push({ bg: slotBg, text: letterText });
     scene.nameEntryContainer.add([slotBg, letterText]);
   });
 
-  // Indicador visual de letra previa/siguiente
   scene.letterPreviewText = scene.add.text(W / 2, 345, '▲ W para subir  |  ▼ S para bajar letra', {
-    fontFamily: 'monospace', fontSize: '13px', color: '#ffd700',
+    fontFamily: 'monospace', fontSize: '14px', fontStyle: 'bold', color: '#ffd700',
   }).setOrigin(0.5);
 
   const instructions = scene.add.text(W / 2, 385, [
     '◄/► (A/D): Mover Cursor    BOTÓN 1 (U) / ENTER: Confirmar',
   ].join('\n'), {
-    fontFamily: 'monospace', fontSize: '13px', color: '#cbd5e1', align: 'center', lineSpacing: 5,
+    fontFamily: 'monospace', fontSize: '13px', color: '#ffffff', align: 'center', lineSpacing: 5,
   }).setOrigin(0.5);
 
   scene.nameEntryContainer.add([scene.letterPreviewText, instructions]);
@@ -890,10 +891,12 @@ function updateNameEntryDisplay(scene) {
   scene.letterSlots.forEach((slot, i) => {
     const isCurrent = (i === ne.charIndex);
     slot.text.setText(ne.alphabet[ne.alphabetIndices[i]]);
-    // Contraste óptimo: casilla activa con borde amarillo dorado y letra cyan brillante
-    slot.bg.setFillStyle(isCurrent ? 0x1e293b : 0x0f172a, 1);
-    slot.bg.setStrokeStyle(isCurrent ? 3 : 1, isCurrent ? 0xffd700 : 0x334e68);
-    slot.text.setColor(isCurrent ? '#00ffff' : '#ffffff');
+    // Casilla activa: fondo azul rey intenso con borde dorado grueso
+    // Casilla inactiva: fondo azul pizarra oscuro con borde gris azulado
+    slot.bg.setFillStyle(isCurrent ? 0x2563eb : 0x1e293b, 1);
+    slot.bg.setStrokeStyle(isCurrent ? 4 : 2, isCurrent ? 0xffd700 : 0x64748b);
+    // Letras 100% en BLANCO PURO (#ffffff) siempre para legibilidad absoluta
+    slot.text.setColor('#ffffff');
   });
 }
 
