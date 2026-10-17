@@ -1,5 +1,5 @@
 {
-  "game_name": "Platanus Hack: Caracas Brick Breaker",
-  "description": "Batalla campal por romper la mayor cantidad de ladrillos",
-  "player_mode": "two_player"
+  "game_name": "Florentino y el Diablo",
+  "description": "Contrapunteo arcade llanero que rinde homenaje a la leyenda de Florentino y el Diablo y al espíritu de rap venezolano de 'Es Épico' de Canserbero. Responde las coplas con tu cuatro y palanca hasta que el sol amanezca.",
+  "player_mode": "single_player"
 }
