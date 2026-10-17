@@ -799,42 +799,47 @@ function showVictoryNameEntry(scene) {
 function createNameEntryUI(scene) {
   scene.nameEntryContainer = scene.add.container(0, 0).setVisible(false);
 
-  // Fondo oscuro sólido de máximo contraste
-  const bg = scene.add.rectangle(W / 2, H / 2, 640, 380, 0x05070a, 0.98)
+  // 1. Fondo oscuro de marco dorado añadido PRIMERO (capa base)
+  const bg = scene.add.rectangle(W / 2, H / 2, 640, 420, 0x05070a, 0.98)
     .setStrokeStyle(3, 0xffd700, 1);
 
-  const title = scene.add.text(W / 2, 150, '¡VICTORIA! ¡EL SOL SALIÓ!', {
+  const title = scene.add.text(W / 2, 130, '¡VICTORIA! ¡EL SOL SALIÓ!', {
     fontFamily: 'monospace', fontSize: '28px', fontStyle: 'bold', color: '#ffd700',
   }).setOrigin(0.5);
 
-  scene.victoryScoreText = scene.add.text(W / 2, 195, 'PUNTOS: 0', {
+  scene.victoryScoreText = scene.add.text(W / 2, 175, 'PUNTOS: 0', {
     fontFamily: 'monospace', fontSize: '20px', fontStyle: 'bold', color: '#00ffcc',
   }).setOrigin(0.5);
 
-  const prompt = scene.add.text(W / 2, 235, 'REGISTRA TUS INICIALES (3 LETRAS):', {
+  const prompt = scene.add.text(W / 2, 215, 'REGISTRA TUS INICIALES (3 LETRAS):', {
     fontFamily: 'monospace', fontSize: '15px', fontStyle: 'bold', color: '#ffffff',
   }).setOrigin(0.5);
 
+  scene.nameEntryContainer.add([bg, title, scene.victoryScoreText, prompt]);
+
+  // 2. Casillas y letras añadidas DESPUÉS (garantizado encima del fondo bg)
   scene.letterSlots = [];
-  [-70, 0, 70].forEach((ox, i) => {
-    // Casilla oscura profunda con borde brillante
-    const slotBg = scene.add.rectangle(W / 2 + ox, 295, 54, 64, 0x0f172a).setStrokeStyle(2, 0x334e68);
-    // Letra clara de alto contraste (blanco/amarillo brillante)
-    const letterText = scene.add.text(W / 2 + ox, 295, 'A', {
-      fontFamily: 'monospace', fontSize: '36px', fontStyle: 'bold', color: '#ffffff',
+  [-80, 0, 80].forEach((ox, i) => {
+    const slotBg = scene.add.rectangle(W / 2 + ox, 280, 64, 76, 0x0f172a, 1).setStrokeStyle(3, 0x334e68);
+    const letterText = scene.add.text(W / 2 + ox, 280, 'A', {
+      fontFamily: 'monospace', fontSize: '42px', fontStyle: 'bold', color: '#ffffff',
     }).setOrigin(0.5);
     scene.letterSlots.push({ bg: slotBg, text: letterText });
     scene.nameEntryContainer.add([slotBg, letterText]);
   });
 
-  const instructions = scene.add.text(W / 2, 380, [
-    '▲/▼ (W/S): Cambiar Letra    ◄/► (A/D): Mover Cursor',
-    'BOTÓN 1 (U) / ENTER: Confirmar Iniciales',
+  // Indicador visual de letra previa/siguiente
+  scene.letterPreviewText = scene.add.text(W / 2, 345, '▲ W para subir  |  ▼ S para bajar letra', {
+    fontFamily: 'monospace', fontSize: '13px', color: '#ffd700',
+  }).setOrigin(0.5);
+
+  const instructions = scene.add.text(W / 2, 385, [
+    '◄/► (A/D): Mover Cursor    BOTÓN 1 (U) / ENTER: Confirmar',
   ].join('\n'), {
     fontFamily: 'monospace', fontSize: '13px', color: '#cbd5e1', align: 'center', lineSpacing: 5,
   }).setOrigin(0.5);
 
-  scene.nameEntryContainer.add([bg, title, scene.victoryScoreText, prompt, instructions]);
+  scene.nameEntryContainer.add([scene.letterPreviewText, instructions]);
 }
 
 function updateNameEntryLoop(scene) {
