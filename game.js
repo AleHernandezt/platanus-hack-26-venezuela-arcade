@@ -6,10 +6,11 @@
 
 const W = 800;
 const H = 600;
-const STORAGE_KEY = 'florentino-diablo-highscores-v1';
-const MAX_SCORES = 10;
+const STORAGE_KEY = 'florentino-diablo-highscores-v2';
+const MAX_SCORES = 5;
+const NAME_LENGTH = 3;
 
-// Mapeo inmutable de la máquina arcade física
+// Mapeo físico inmutable de la máquina arcade física
 const CABINET_KEYS = {
   P1_U: ['w'],
   P1_D: ['s'],
@@ -166,7 +167,6 @@ function playArpaNote(time, freq, dur = 0.18) {
   osc.stop(time + dur);
 }
 
-// Sonido de Bombo hip-hop sintetizado
 function playHipHopKick(time) {
   if (!audioCtx) return;
   const osc = audioCtx.createOscillator();
@@ -182,10 +182,8 @@ function playHipHopKick(time) {
   osc.stop(time + 0.19);
 }
 
-// Sonido de Caja (Snare) rap
 function playHipHopSnare(time) {
   if (!audioCtx) return;
-  // Tono base
   const osc = audioCtx.createOscillator();
   const oscGain = audioCtx.createGain();
   osc.type = 'triangle';
@@ -197,7 +195,6 @@ function playHipHopSnare(time) {
   osc.start(time);
   osc.stop(time + 0.1);
 
-  // Ruido de redoble
   const bufSize = audioCtx.sampleRate * 0.1;
   const buf = audioCtx.createBuffer(1, bufSize, audioCtx.sampleRate);
   const d = buf.getChannelData(0);
@@ -212,7 +209,6 @@ function playHipHopSnare(time) {
   src.start(time);
 }
 
-// Efectos de sonido (SFX)
 function playSfxSuccess() {
   if (!audioCtx) return;
   const now = audioCtx.currentTime;
@@ -254,6 +250,12 @@ function playSfxDevilVoice() {
   osc.stop(now + 0.32);
 }
 
+function playSfxNav() {
+  if (!audioCtx) return;
+  const now = audioCtx.currentTime;
+  playArpaNote(now, 440, 0.05);
+}
+
 const JOROPO_MELODY = [
   { harp: NOTE_FREQS.A4, cuatro: [NOTE_FREQS.D4, NOTE_FREQS.F4, NOTE_FREQS.A4], maraca: true },
   { harp: NOTE_FREQS.D5, cuatro: null, maraca: false },
@@ -287,7 +289,6 @@ function scheduleMusicStep() {
       playMaraca(nextStepTime, currentPatternIndex % 2 === 0);
       if (step.harp) playArpaNote(nextStepTime, step.harp * 0.5, stepDuration);
     } else {
-      // Fusión Joropo + Rap
       if (currentPatternIndex % 4 === 0) playHipHopKick(nextStepTime);
       if (currentPatternIndex % 4 === 2) playHipHopSnare(nextStepTime);
       if (step.cuatro) playCuatroChit(nextStepTime, step.cuatro);
@@ -311,12 +312,14 @@ function startMusic() {
 // BANCO DE VERSOS ORIGINALES (Fácil selección: 4 opciones W/A/S/D)
 // -----------------------------------------------------------------------------
 const DUEL_ROUNDS = [
-  // ROUND 1: Medianoche - El Reto
   {
     roundNum: 1,
     title: 'COPLA I: MEDIANOCHE',
     bpm: 108,
     mode: 'joropo',
+    skyTop: 0x050813,
+    skyBottom: 0x1f1930,
+    sunY: 650,
     devilLine: '¡Si te dices cantador, échate un verso en el llano,\nque esta noche vengo a ver de qué madera es tu mano!',
     options: [
       { dir: 'P1_U', label: '▲ ARRIBA', text: '¡Tengo madera de cedro y corazón de sabana!', points: 150, correct: true },
@@ -325,12 +328,14 @@ const DUEL_ROUNDS = [
       { dir: 'P1_R', label: '► DER', text: '¡No me asusta tu sombrero ni tu capa negra!', points: 90, correct: false },
     ],
   },
-  // ROUND 2: Madrugada - El Fuego
   {
     roundNum: 2,
     title: 'COPLA II: MADRUGADA',
     bpm: 122,
     mode: 'joropo',
+    skyTop: 0x0f112c,
+    skyBottom: 0x471d4a,
+    sunY: 580,
     devilLine: '¡La candela de mi pecho quema sabana y moriche,\nno hay coplero que me aguante sin que la voz se le achique!',
     options: [
       { dir: 'P1_L', label: '◄ IZQ', text: '¡El agua fresca del río apaga todo tu ardor!', points: 80, correct: false },
@@ -339,12 +344,14 @@ const DUEL_ROUNDS = [
       { dir: 'P1_R', label: '► DER', text: '¡Mucho ruido y pocas nueces para tanta espanta!', points: 100, correct: false },
     ],
   },
-  // ROUND 3: La Hora Bruja - El Contrapunteo Urbano (Beat 4/4)
   {
     roundNum: 3,
     title: 'COPLA III: LA HORA BRUJA (RAP LLANERO)',
     bpm: 92,
     mode: 'rap',
+    skyTop: 0x1b1338,
+    skyBottom: 0x6e2840,
+    sunY: 510,
     devilLine: '¡Pongo rima sobre el bombo, sombra sobre tu garganta,\nel infierno trae compás y tu verso se atraganta!',
     options: [
       { dir: 'P1_D', label: '▼ ABAJO', text: '¡Tengo métrica de trueno y este llano no se espanta!', points: 220, correct: true },
@@ -353,12 +360,14 @@ const DUEL_ROUNDS = [
       { dir: 'P1_R', label: '► DER', text: '¡Caracas me dio el piquete y el estero la corona!', points: 140, correct: false },
     ],
   },
-  // ROUND 4: El Amanecer - Fusión Final
   {
     roundNum: 4,
-    title: 'COPLA IV: EL CANTO DEL GALLO',
+    title: 'COPLA IV: EL CANTO DEL GALLO (AMANECER)',
     bpm: 130,
     mode: 'fusion',
+    skyTop: 0x2d1a45,
+    skyBottom: 0xc45524,
+    sunY: 420,
     devilLine: '¡Ya la sombra se disuelve y la noche se me acaba,\nsuelta el cuatro Florentino, que la muerte no te salva!',
     options: [
       { dir: 'P1_R', label: '► DER', text: '¡Canta el gallo en el corral y el sol bendito ya clarea!', points: 260, correct: true },
@@ -368,6 +377,53 @@ const DUEL_ROUNDS = [
     ],
   },
 ];
+
+// -----------------------------------------------------------------------------
+// SISTEMA DE ALMACENAMIENTO DE RÉCORDS (Bridge Arcade + LocalStorage)
+// -----------------------------------------------------------------------------
+function getStorage() {
+  if (window.platanusArcadeStorage) return window.platanusArcadeStorage;
+  return {
+    async get(key) {
+      try {
+        const raw = window.localStorage.getItem(key);
+        return raw === null ? { found: false, value: null } : { found: true, value: JSON.parse(raw) };
+      } catch {
+        return { found: false, value: null };
+      }
+    },
+    async set(key, val) {
+      try {
+        window.localStorage.setItem(key, JSON.stringify(val));
+      } catch {}
+    },
+  };
+}
+
+async function loadLeaderboard() {
+  try {
+    const res = await getStorage().get(STORAGE_KEY);
+    if (res && res.found && Array.isArray(res.value)) {
+      return res.value.filter(e => e && typeof e.name === 'string' && typeof e.score === 'number').slice(0, MAX_SCORES);
+    }
+  } catch {}
+  return [
+    { name: 'FLO', score: 850, date: '2026-10-17' },
+    { name: 'CAN', score: 700, date: '2026-10-17' },
+    { name: 'LLN', score: 550, date: '2026-10-17' },
+  ];
+}
+
+async function saveLeaderboardEntry(entry) {
+  const current = await loadLeaderboard();
+  current.push(entry);
+  current.sort((a, b) => b.score - a.score);
+  const trimmed = current.slice(0, MAX_SCORES);
+  try {
+    await getStorage().set(STORAGE_KEY, trimmed);
+  } catch {}
+  return trimmed;
+}
 
 // -----------------------------------------------------------------------------
 // ESCENA PRINCIPAL
@@ -387,26 +443,41 @@ new Phaser.Game(config);
 function create() {
   const scene = this;
 
-  scene.gamePhase = 'title'; // 'title', 'instructions', 'battle', 'roundResult', 'victory', 'gameover'
+  scene.gamePhase = 'title'; // 'title', 'instructions', 'battle', 'nameEntry', 'records', 'gameover'
   scene.stars = [];
   scene.fireParticles = [];
 
-  // Estado de la partida
   scene.gameState = {
     roundIndex: 0,
     score: 0,
     combo: 0,
-    balance: 50, // 0 = Diablo gana, 100 = Florentino gana
-    selectedDir: 'P1_U', // Dirección seleccionada con la palanca
+    balance: 50,
+    selectedDir: 'P1_U',
     roundTimer: 0,
     roundMaxTime: 7000,
     waitingAnswer: false,
+    devilScale: 1,
+  };
+
+  // Estado de ingreso de nombre (3 letras)
+  scene.nameEntry = {
+    letters: ['A', 'A', 'A'],
+    charIndex: 0,
+    alphabet: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'.split(''),
+    alphabetIndices: [0, 0, 0],
   };
 
   createLlanoBackground(scene);
   createCharacterSilhouettes(scene);
   createBattleUI(scene);
+  createNameEntryUI(scene);
+  createRecordsUI(scene);
   createTitleUI(scene);
+
+  loadLeaderboard().then(scores => {
+    scene.cachedLeaderboard = scores;
+    refreshLeaderboardView(scene, scores);
+  });
 }
 
 function update(time, delta) {
@@ -416,7 +487,7 @@ function update(time, delta) {
   if (scene.stars) {
     for (let i = 0; i < scene.stars.length; i++) {
       const s = scene.stars[i];
-      s.alpha = 0.3 + 0.7 * Math.abs(Math.sin((time * 0.002) + s.seed));
+      s.alpha = (0.3 + 0.7 * Math.abs(Math.sin((time * 0.002) + s.seed))) * scene.starSkyVisibility;
     }
   }
 
@@ -432,30 +503,43 @@ function update(time, delta) {
   // Máquina de estados
   if (scene.gamePhase === 'title') {
     if (wasPressed('START1') || wasPressed('P1_1')) {
+      playSfxNav();
       startMusic();
       scene.titleContainer.setVisible(false);
       scene.instructionsContainer.setVisible(true);
       scene.gamePhase = 'instructions';
+    } else if (wasPressed('P1_2') || wasPressed('P1_D')) {
+      // Ver récords directamente
+      playSfxNav();
+      scene.titleContainer.setVisible(false);
+      scene.recordsContainer.setVisible(true);
+      scene.gamePhase = 'records';
     }
   } else if (scene.gamePhase === 'instructions') {
     if (wasPressed('START1') || wasPressed('P1_1')) {
+      playSfxNav();
       scene.instructionsContainer.setVisible(false);
       startBattle(scene);
     }
   } else if (scene.gamePhase === 'battle') {
     updateBattleLoop(scene, delta);
-  } else if (scene.gamePhase === 'victory' || scene.gamePhase === 'gameover') {
+  } else if (scene.gamePhase === 'nameEntry') {
+    updateNameEntryLoop(scene);
+  } else if (scene.gamePhase === 'records' || scene.gamePhase === 'gameover') {
     if (wasPressed('START1') || wasPressed('P1_1')) {
-      scene.endGameContainer.setVisible(false);
+      playSfxNav();
+      scene.recordsContainer.setVisible(false);
+      scene.gameOverContainer.setVisible(false);
       scene.titleContainer.setVisible(true);
       scene.battleContainer.setVisible(false);
+      resetToNightSky(scene);
       scene.gamePhase = 'title';
     }
   }
 }
 
 // -----------------------------------------------------------------------------
-// LÓGICA DE BATALLA / CONTRAPUNTEO
+// LÓGICA DE BATALLA Y AMANECER
 // -----------------------------------------------------------------------------
 function startBattle(scene) {
   scene.gamePhase = 'battle';
@@ -463,6 +547,7 @@ function startBattle(scene) {
   scene.gameState.score = 0;
   scene.gameState.combo = 0;
   scene.gameState.balance = 50;
+  scene.gameState.devilScale = 1;
   scene.battleContainer.setVisible(true);
   loadRound(scene, 0);
 }
@@ -475,21 +560,21 @@ function loadRound(scene, roundIdx) {
 
   scene.gameState.roundTimer = scene.gameState.roundMaxTime;
   scene.gameState.waitingAnswer = false;
-  scene.gameState.selectedDir = 'P1_U'; // Selección inicial
+  scene.gameState.selectedDir = 'P1_U';
 
-  // Ocultar opciones mientras el diablo recita
+  // Animación suave del cielo hacia el amanecer
+  transitionSky(scene, round.skyTop, round.skyBottom, round.sunY, 4 - roundIdx);
+
   scene.optionsBox.setVisible(false);
   scene.feedbackText.setText('');
   scene.roundHeader.setText(`${round.title}  |  PUNTOS: ${scene.gameState.score}`);
 
-  // Mostrar copla del Diablo con efecto
   scene.dialogueBox.setVisible(true);
   scene.speakerName.setText('EL DIABLO DICE:');
   scene.speakerName.setColor('#ff3322');
   scene.dialogueText.setText(round.devilLine);
   playSfxDevilVoice();
 
-  // Pausa dramática para escuchar al diablo, luego el jugador responde
   scene.time.delayedCall(2200, () => {
     if (scene.gamePhase !== 'battle') return;
     scene.gameState.waitingAnswer = true;
@@ -519,7 +604,6 @@ function renderOptions(scene) {
 }
 
 function updateBattleLoop(scene, delta) {
-  // Manejo de palanca para cambiar de opción seleccionada
   let changed = false;
   if (wasPressed('P1_U')) { scene.gameState.selectedDir = 'P1_U'; changed = true; }
   else if (wasPressed('P1_D')) { scene.gameState.selectedDir = 'P1_D'; changed = true; }
@@ -527,26 +611,23 @@ function updateBattleLoop(scene, delta) {
   else if (wasPressed('P1_R')) { scene.gameState.selectedDir = 'P1_R'; changed = true; }
 
   if (changed && scene.gameState.waitingAnswer) {
+    playSfxNav();
     renderOptions(scene);
   }
 
-  // Actualizar temporizador de respuesta
   if (scene.gameState.waitingAnswer) {
     scene.gameState.roundTimer -= delta;
     const progress = Math.max(0, scene.gameState.roundTimer / scene.gameState.roundMaxTime);
     scene.timerBar.setSize(460 * progress, 8);
     scene.timerBar.setFillStyle(progress > 0.3 ? 0x00ffcc : 0xff3333);
 
-    // Confirmación de verso con BOTÓN 1 (U)
     if (wasPressed('P1_1') || wasPressed('START1')) {
       evaluateAnswer(scene);
     } else if (scene.gameState.roundTimer <= 0) {
-      // Se agotó el tiempo
       evaluateAnswer(scene, true);
     }
   }
 
-  // Actualizar barra de balance (tira y afloja)
   updateBalanceBar(scene);
 }
 
@@ -555,7 +636,6 @@ function evaluateAnswer(scene, timedOut = false) {
   const round = scene.currentRoundData;
   const choice = round.options.find(o => o.dir === scene.gameState.selectedDir);
 
-  let gained = 0;
   let text = '';
   let color = '#ffffff';
 
@@ -563,43 +643,45 @@ function evaluateAnswer(scene, timedOut = false) {
     text = '¡TE COMISTE EL VERSO!';
     color = '#ff2222';
     scene.gameState.combo = 0;
-    scene.gameState.balance = Math.max(0, scene.gameState.balance - 25);
+    scene.gameState.balance = Math.max(0, scene.gameState.balance - 26);
+    scene.gameState.devilScale = Math.min(1.4, scene.gameState.devilScale + 0.15);
     playSfxFail();
     scene.cameras.main.shake(250, 0.015);
   } else if (choice.correct) {
     scene.gameState.combo++;
-    gained = choice.points + (scene.gameState.combo * 20);
+    const gained = choice.points + (scene.gameState.combo * 25);
     scene.gameState.score += gained;
-    scene.gameState.balance = Math.min(100, scene.gameState.balance + 22);
+    scene.gameState.balance = Math.min(100, scene.gameState.balance + 24);
+    scene.gameState.devilScale = Math.max(0.7, scene.gameState.devilScale - 0.1);
     text = scene.gameState.combo > 1 ? `¡ÉPICO! COMBO x${scene.gameState.combo}` : '¡VERSO PERFECTO!';
     color = '#00ff66';
     playSfxSuccess();
     scene.cameras.main.flash(200, 200, 255, 150);
   } else {
-    // Verso regular o flojo
     scene.gameState.combo = 0;
-    gained = choice.points;
-    scene.gameState.score += gained;
-    scene.gameState.balance = Math.max(0, scene.gameState.balance - 12);
+    scene.gameState.score += choice.points;
+    scene.gameState.balance = Math.max(0, scene.gameState.balance - 15);
+    scene.gameState.devilScale = Math.min(1.4, scene.gameState.devilScale + 0.08);
     text = '¡TE FALTO RIMA!';
     color = '#ffaa00';
     playSfxFail();
     scene.cameras.main.shake(150, 0.008);
   }
 
+  updateDevilSilhouetteScale(scene);
+
   scene.feedbackText.setText(text);
   scene.feedbackText.setColor(color);
   scene.dialogueText.setText(`Florentino cantó:\n"${choice ? choice.text : '...'}"`);
   scene.optionsBox.setVisible(false);
 
-  // Evaluar condición de victoria/derrota o pasar a siguiente round
   scene.time.delayedCall(2000, () => {
     if (scene.gameState.balance <= 0) {
-      showEndGame(scene, false); // Derrota
+      showGameOver(scene);
     } else {
       scene.gameState.roundIndex++;
       if (scene.gameState.roundIndex >= DUEL_ROUNDS.length) {
-        showEndGame(scene, true); // Victoria
+        showVictoryNameEntry(scene);
       } else {
         loadRound(scene, scene.gameState.roundIndex);
       }
@@ -609,79 +691,249 @@ function evaluateAnswer(scene, timedOut = false) {
 
 function updateBalanceBar(scene) {
   const b = scene.gameState.balance;
-  // Barra de 300px ancho
   const w = (b / 100) * 300;
   scene.duelBalanceFill.setSize(w, 14);
   scene.duelBalanceFill.setX(W / 2 - 150 + w / 2);
   scene.scoreLabel.setText(`PUNTOS: ${scene.gameState.score}`);
 }
 
-function showEndGame(scene, won) {
-  scene.gamePhase = won ? 'victory' : 'gameover';
+function showGameOver(scene) {
+  scene.gamePhase = 'gameover';
   scene.battleContainer.setVisible(false);
-  scene.endGameContainer.setVisible(true);
+  scene.gameOverContainer.setVisible(true);
+  scene.gameOverScore.setText(`Puntuación lograda: ${scene.gameState.score}`);
+  playSfxFail();
+}
 
-  if (won) {
-    scene.endTitle.setText('¡EL SOL SALIÓ! ¡VICTORIA!');
-    scene.endTitle.setColor('#ffd700');
-    scene.endSubtitle.setText([
-      'Cantó el gallo y el Diablo tuvo que huir.',
-      'Florentino salvó su alma en el contrapunteo.',
-      `Puntuación final: ${scene.gameState.score}`,
-      '',
-      'PRESIONA START PARA VOLVER AL TÍTULO',
-    ].join('\n'));
-    playSfxSuccess();
-  } else {
-    scene.endTitle.setText('¡EL DIABLO TE DERROTÓ!');
-    scene.endTitle.setColor('#ff3322');
-    scene.endSubtitle.setText([
-      'La noche se tragó tus coplas en la sabana.',
-      'El Mandinga venció esta vez...',
-      `Puntuación lograda: ${scene.gameState.score}`,
-      '',
-      'PRESIONA START PARA REINTENTAR',
-    ].join('\n'));
-    playSfxFail();
-  }
+function showVictoryNameEntry(scene) {
+  scene.gamePhase = 'nameEntry';
+  scene.battleContainer.setVisible(false);
+  scene.nameEntryContainer.setVisible(true);
+  scene.victoryScoreText.setText(`PUNTOS FINALES: ${scene.gameState.score}`);
+  scene.nameEntry.charIndex = 0;
+  updateNameEntryDisplay(scene);
+  playSfxSuccess();
 }
 
 // -----------------------------------------------------------------------------
-// ARTE PROCEDURAL Y FONDOS
+// ENTRADA DE INICIALES (A-Z con palanca y Botón 1)
+// -----------------------------------------------------------------------------
+function createNameEntryUI(scene) {
+  scene.nameEntryContainer = scene.add.container(0, 0).setVisible(false);
+
+  const bg = scene.add.rectangle(W / 2, H / 2, 600, 360, 0x0a101d, 0.96)
+    .setStrokeStyle(3, 0xffd700, 0.9);
+
+  const title = scene.add.text(W / 2, 160, '¡VICTORIA! ¡EL SOL SALIÓ!', {
+    fontFamily: 'monospace', fontSize: '26px', fontStyle: 'bold', color: '#ffd700',
+  }).setOrigin(0.5);
+
+  scene.victoryScoreText = scene.add.text(W / 2, 200, 'PUNTOS: 0', {
+    fontFamily: 'monospace', fontSize: '18px', color: '#00ffcc',
+  }).setOrigin(0.5);
+
+  const prompt = scene.add.text(W / 2, 240, 'REGISTRA TUS INICIALES (3 LETRAS):', {
+    fontFamily: 'monospace', fontSize: '14px', color: '#ffffff',
+  }).setOrigin(0.5);
+
+  scene.letterSlots = [];
+  [-60, 0, 60].forEach((ox, i) => {
+    const slotBg = scene.add.rectangle(W / 2 + ox, 300, 48, 56, 0x111c2e).setStrokeStyle(2, 0xffd700);
+    const letterText = scene.add.text(W / 2 + ox, 300, 'A', {
+      fontFamily: 'monospace', fontSize: '30px', fontStyle: 'bold', color: '#ffd700',
+    }).setOrigin(0.5);
+    scene.letterSlots.push({ bg: slotBg, text: letterText });
+    scene.nameEntryContainer.add([slotBg, letterText]);
+  });
+
+  const instructions = scene.add.text(W / 2, 385, [
+    '▲/▼ (W/S): Cambiar Letra    ◄/► (A/D): Mover Cursor',
+    'BOTÓN 1 (U) / ENTER: Confirmar Iniciales',
+  ].join('\n'), {
+    fontFamily: 'monospace', fontSize: '12px', color: '#aaaaaa', align: 'center', lineSpacing: 4,
+  }).setOrigin(0.5);
+
+  scene.nameEntryContainer.add([bg, title, scene.victoryScoreText, prompt, instructions]);
+}
+
+function updateNameEntryLoop(scene) {
+  const ne = scene.nameEntry;
+
+  if (wasPressed('P1_U')) {
+    ne.alphabetIndices[ne.charIndex] = (ne.alphabetIndices[ne.charIndex] + 1) % ne.alphabet.length;
+    playSfxNav();
+    updateNameEntryDisplay(scene);
+  } else if (wasPressed('P1_D')) {
+    ne.alphabetIndices[ne.charIndex] = (ne.alphabetIndices[ne.charIndex] - 1 + ne.alphabet.length) % ne.alphabet.length;
+    playSfxNav();
+    updateNameEntryDisplay(scene);
+  } else if (wasPressed('P1_R')) {
+    ne.charIndex = Math.min(NAME_LENGTH - 1, ne.charIndex + 1);
+    playSfxNav();
+    updateNameEntryDisplay(scene);
+  } else if (wasPressed('P1_L')) {
+    ne.charIndex = Math.max(0, ne.charIndex - 1);
+    playSfxNav();
+    updateNameEntryDisplay(scene);
+  }
+
+  if (wasPressed('P1_1') || wasPressed('START1')) {
+    // Si no está en el último carácter, avanza; si está en el último, guarda
+    if (ne.charIndex < NAME_LENGTH - 1) {
+      ne.charIndex++;
+      playSfxNav();
+      updateNameEntryDisplay(scene);
+    } else {
+      // Guardar y mostrar tabla
+      const name = ne.alphabetIndices.map(idx => ne.alphabet[idx]).join('');
+      saveLeaderboardEntry({
+        name,
+        score: scene.gameState.score,
+        date: new Date().toISOString().slice(0, 10),
+      }).then(updatedScores => {
+        scene.cachedLeaderboard = updatedScores;
+        refreshLeaderboardView(scene, updatedScores);
+        scene.nameEntryContainer.setVisible(false);
+        scene.recordsContainer.setVisible(true);
+        scene.gamePhase = 'records';
+      });
+    }
+  }
+}
+
+function updateNameEntryDisplay(scene) {
+  const ne = scene.nameEntry;
+  scene.letterSlots.forEach((slot, i) => {
+    const isCurrent = (i === ne.charIndex);
+    slot.text.setText(ne.alphabet[ne.alphabetIndices[i]]);
+    slot.bg.setStrokeStyle(isCurrent ? 3 : 1, isCurrent ? 0x00ffcc : 0x555555);
+    slot.text.setColor(isCurrent ? '#00ffcc' : '#ffffff');
+  });
+}
+
+// -----------------------------------------------------------------------------
+// TABLA DE RÉCORDS (TOP 10)
+// -----------------------------------------------------------------------------
+function createRecordsUI(scene) {
+  scene.recordsContainer = scene.add.container(0, 0).setVisible(false);
+
+  const bg = scene.add.rectangle(W / 2, H / 2, 600, 420, 0x080e18, 0.96)
+    .setStrokeStyle(3, 0xffd700, 0.9);
+
+  const title = scene.add.text(W / 2, 130, '★ COPLEROS DE LEYENDA ★', {
+    fontFamily: 'monospace', fontSize: '24px', fontStyle: 'bold', color: '#ffd700',
+  }).setOrigin(0.5);
+
+  scene.recordsListText = scene.add.text(W / 2, 270, '', {
+    fontFamily: 'monospace', fontSize: '15px', color: '#ffffff', lineSpacing: 8, align: 'center',
+  }).setOrigin(0.5);
+
+  const backNote = scene.add.text(W / 2, 450, 'PRESIONA START / ENTER PARA VOLVER', {
+    fontFamily: 'monospace', fontSize: '14px', fontStyle: 'bold', color: '#00ffcc',
+  }).setOrigin(0.5);
+
+  scene.recordsContainer.add([bg, title, scene.recordsListText, backNote]);
+
+  // Pantalla de Game Over
+  scene.gameOverContainer = scene.add.container(0, 0).setVisible(false);
+  const goBg = scene.add.rectangle(W / 2, H / 2, 580, 320, 0x140507, 0.96).setStrokeStyle(3, 0xff2200);
+  const goTitle = scene.add.text(W / 2, 180, '¡EL DIABLO SE LLEVÓ EL VERSO!', {
+    fontFamily: 'monospace', fontSize: '24px', fontStyle: 'bold', color: '#ff2200',
+  }).setOrigin(0.5);
+  scene.gameOverScore = scene.add.text(W / 2, 230, '', { fontFamily: 'monospace', fontSize: '16px', color: '#ffffff' }).setOrigin(0.5);
+  const goText = scene.add.text(W / 2, 280, [
+    'Tu voz vaciló en la sabana oscura.',
+    'Florentino cayó en la trampa del Mandinga...',
+    '',
+    'PRESIONA START / ENTER PARA REINTENTAR',
+  ].join('\n'), {
+    fontFamily: 'monospace', fontSize: '13px', color: '#dddddd', align: 'center', lineSpacing: 4,
+  }).setOrigin(0.5);
+  scene.gameOverContainer.add([goBg, goTitle, scene.gameOverScore, goText]);
+}
+
+function refreshLeaderboardView(scene, scores) {
+  if (!scores || !scores.length) {
+    scene.recordsListText.setText('NO HAY RÉCORDS REGISTRADOS');
+    return;
+  }
+  const lines = scores.map((s, idx) => {
+    const pos = String(idx + 1).padStart(2, '0');
+    const name = (s.name || '???').padEnd(3, ' ');
+    const pts = String(s.score || 0).padStart(6, ' ');
+    return `${pos}.   ${name}   -----   ${pts} PTS`;
+  });
+  scene.recordsListText.setText(lines.join('\n'));
+}
+
+// -----------------------------------------------------------------------------
+// ARTE PROCEDURAL Y TRANSICIÓN DE AMANECER
 // -----------------------------------------------------------------------------
 function createLlanoBackground(scene) {
-  const gfx = scene.add.graphics();
-  gfx.fillGradientStyle(0x050813, 0x050813, 0x181528, 0x1f1930, 1);
-  gfx.fillRect(0, 0, W, H - 150);
+  scene.skyGfx = scene.add.graphics();
+  scene.sunGfx = scene.add.graphics();
+  scene.starSkyVisibility = 1;
 
-  // Luna llanera
-  gfx.fillStyle(0xfff7db, 1);
-  gfx.fillCircle(140, 110, 42);
-  gfx.fillStyle(0x0a0c16, 0.95);
-  gfx.fillCircle(156, 102, 38);
+  resetToNightSky(scene);
 
-  // Estrellas
   for (let i = 0; i < 40; i++) {
     const star = scene.add.rectangle(Math.random() * W, Math.random() * (H - 240), 2, 2, 0xffffff, 0.8);
     star.seed = Math.random() * 10;
     scene.stars.push(star);
   }
 
-  // Sabana
-  gfx.fillStyle(0x0c1109, 1);
-  gfx.fillRect(0, H - 150, W, 150);
-  gfx.fillStyle(0x080b06, 1);
-  gfx.fillRect(0, H - 110, W, 110);
+  const landGfx = scene.add.graphics();
+  landGfx.fillStyle(0x0c1109, 1);
+  landGfx.fillRect(0, H - 150, W, 150);
+  landGfx.fillStyle(0x080b06, 1);
+  landGfx.fillRect(0, H - 110, W, 110);
 
-  // Palmas
-  drawMorichePalm(gfx, 60, H - 150, 0.85);
-  drawMorichePalm(gfx, 210, H - 150, 0.65);
-  drawMorichePalm(gfx, 730, H - 150, 0.9);
-  drawMorichePalm(gfx, 610, H - 150, 0.7);
+  drawMorichePalm(landGfx, 60, H - 150, 0.85);
+  drawMorichePalm(landGfx, 210, H - 150, 0.65);
+  drawMorichePalm(landGfx, 730, H - 150, 0.9);
+  drawMorichePalm(landGfx, 610, H - 150, 0.7);
 
-  // Fogata
-  gfx.fillStyle(0x2d1a0c, 1);
-  gfx.fillRect(W / 2 - 20, H - 120, 40, 8);
+  landGfx.fillStyle(0x2d1a0c, 1);
+  landGfx.fillRect(W / 2 - 20, H - 120, 40, 8);
+}
+
+function resetToNightSky(scene) {
+  scene.skyGfx.clear();
+  scene.skyGfx.fillGradientStyle(0x050813, 0x050813, 0x181528, 0x1f1930, 1);
+  scene.skyGfx.fillRect(0, 0, W, H - 150);
+
+  scene.sunGfx.clear();
+  // Luna llanera
+  scene.sunGfx.fillStyle(0xfff7db, 1);
+  scene.sunGfx.fillCircle(140, 110, 42);
+  scene.sunGfx.fillStyle(0x0a0c16, 0.95);
+  scene.sunGfx.fillCircle(156, 102, 38);
+  scene.starSkyVisibility = 1;
+}
+
+function transitionSky(scene, topColor, bottomColor, sunY, starsLeft) {
+  scene.skyGfx.clear();
+  scene.skyGfx.fillGradientStyle(topColor, topColor, bottomColor, bottomColor, 1);
+  scene.skyGfx.fillRect(0, 0, W, H - 150);
+
+  scene.starSkyVisibility = starsLeft / 4;
+
+  scene.sunGfx.clear();
+  if (sunY < 500) {
+    // Sol naciente resplandeciente
+    scene.sunGfx.fillStyle(0xffaa00, 0.3);
+    scene.sunGfx.fillCircle(W / 2, sunY, 70);
+    scene.sunGfx.fillStyle(0xffe066, 0.7);
+    scene.sunGfx.fillCircle(W / 2, sunY, 45);
+    scene.sunGfx.fillStyle(0xffffff, 1);
+    scene.sunGfx.fillCircle(W / 2, sunY, 28);
+  } else {
+    // Luna en desvanecimiento
+    scene.sunGfx.fillStyle(0xfff7db, 0.8);
+    scene.sunGfx.fillCircle(140, 110, 42);
+    scene.sunGfx.fillStyle(0x181528, 0.9);
+    scene.sunGfx.fillCircle(156, 102, 38);
+  }
 }
 
 function drawMorichePalm(gfx, x, y, scale) {
@@ -734,34 +986,41 @@ function createCharacterSilhouettes(scene) {
   gfx.fillRect(fx + 10, fy - 65, 4, 25);
 
   // El Diablo
-  const dx = 620;
-  const dy = H - 130;
-  gfx.fillStyle(0x0b0507, 1);
-  gfx.fillRect(dx - 18, dy - 85, 36, 70);
-  gfx.fillRect(dx - 32, dy - 96, 64, 6);
-  gfx.fillRect(dx - 16, dy - 114, 32, 18);
-  gfx.fillRect(dx - 14, dy - 15, 11, 28);
-  gfx.fillRect(dx + 3, dy - 15, 11, 28);
+  scene.devilContainer = scene.add.container(620, H - 130);
+  const devilGfx = scene.add.graphics();
+  devilGfx.fillStyle(0x0b0507, 1);
+  devilGfx.fillRect(-18, -85, 36, 70);
+  devilGfx.fillRect(-32, -96, 64, 6);
+  devilGfx.fillRect(-16, -114, 32, 18);
+  devilGfx.fillRect(-14, -15, 11, 28);
+  devilGfx.fillRect(3, -15, 11, 28);
 
   const eyes = scene.add.graphics();
   eyes.fillStyle(0xff1111, 1);
-  eyes.fillRect(dx - 7, dy - 90, 4, 3);
-  eyes.fillRect(dx + 3, dy - 90, 4, 3);
+  eyes.fillRect(-7, -90, 4, 3);
+  eyes.fillRect(3, -90, 4, 3);
   scene.devilEyes = eyes;
+
+  scene.devilContainer.add([devilGfx, eyes]);
+}
+
+function updateDevilSilhouetteScale(scene) {
+  if (scene.devilContainer) {
+    const s = scene.gameState.devilScale;
+    scene.devilContainer.setScale(s);
+  }
 }
 
 // -----------------------------------------------------------------------------
-// UI DE BATALLA Y OPCIONES
+// UI DE BATALLA
 // -----------------------------------------------------------------------------
 function createBattleUI(scene) {
   scene.battleContainer = scene.add.container(0, 0).setVisible(false);
 
-  // Barra de cabecera con Round y Puntaje
   scene.roundHeader = scene.add.text(W / 2, 25, '', {
     fontFamily: 'monospace', fontSize: '16px', fontStyle: 'bold', color: '#ffd700',
   }).setOrigin(0.5);
 
-  // Barra de duelo (Tug of war)
   const duelBarBg = scene.add.rectangle(W / 2, 52, 304, 18, 0x111111).setStrokeStyle(2, 0x555555);
   scene.duelBalanceFill = scene.add.rectangle(W / 2, 52, 150, 14, 0x00ffcc);
   const florentinoTag = scene.add.text(W / 2 - 160, 52, 'FLORENTINO', { fontFamily: 'monospace', fontSize: '11px', color: '#00ffcc' }).setOrigin(1, 0.5);
@@ -769,12 +1028,10 @@ function createBattleUI(scene) {
 
   scene.scoreLabel = scene.add.text(W / 2, 75, 'PUNTOS: 0', { fontFamily: 'monospace', fontSize: '13px', color: '#ffffff' }).setOrigin(0.5);
 
-  // Feedback en el centro
   scene.feedbackText = scene.add.text(W / 2, 102, '', {
     fontFamily: 'monospace', fontSize: '20px', fontStyle: 'bold', color: '#ffffff',
   }).setOrigin(0.5);
 
-  // Cuadro de diálogo del verso actual
   scene.dialogueBox = scene.add.container(0, 0);
   const dialBg = scene.add.rectangle(W / 2, 160, 680, 80, 0x0a101d, 0.9).setStrokeStyle(2, 0x334e68);
   scene.speakerName = scene.add.text(W / 2 - 325, 130, '', { fontFamily: 'monospace', fontSize: '13px', fontStyle: 'bold', color: '#ffd700' });
@@ -783,19 +1040,17 @@ function createBattleUI(scene) {
   }).setOrigin(0.5);
   scene.dialogueBox.add([dialBg, scene.speakerName, scene.dialogueText]);
 
-  // Barra de tiempo de respuesta
   const timerTrack = scene.add.rectangle(W / 2, 212, 464, 10, 0x111111).setStrokeStyle(1, 0x444444);
   scene.timerBar = scene.add.rectangle(W / 2, 212, 460, 8, 0x00ffcc);
 
-  // Cuadro de opciones de respuesta (Arriba, Abajo, Izquierda, Derecha)
   scene.optionsBox = scene.add.container(0, 0).setVisible(false);
   scene.optionCards = [];
 
   const positions = [
-    { x: W / 2, y: 250 },       // Arriba
-    { x: W / 2 - 170, y: 310 }, // Izquierda
-    { x: W / 2 + 170, y: 310 }, // Derecha
-    { x: W / 2, y: 370 },       // Abajo
+    { x: W / 2, y: 250 },
+    { x: W / 2 - 170, y: 310 },
+    { x: W / 2 + 170, y: 310 },
+    { x: W / 2, y: 370 },
   ];
 
   positions.forEach((pos) => {
@@ -810,13 +1065,6 @@ function createBattleUI(scene) {
     scene.roundHeader, duelBarBg, scene.duelBalanceFill, florentinoTag, diabloTag,
     scene.scoreLabel, scene.feedbackText, scene.dialogueBox, timerTrack, scene.timerBar, scene.optionsBox
   ]);
-
-  // Pantalla de Fin de Juego (Victoria o Derrota)
-  scene.endGameContainer = scene.add.container(0, 0).setVisible(false);
-  const endBg = scene.add.rectangle(W / 2, H / 2, 600, 320, 0x070c14, 0.95).setStrokeStyle(3, 0xffd700);
-  scene.endTitle = scene.add.text(W / 2, 190, '', { fontFamily: 'monospace', fontSize: '28px', fontStyle: 'bold', color: '#ffd700' }).setOrigin(0.5);
-  scene.endSubtitle = scene.add.text(W / 2, 300, '', { fontFamily: 'monospace', fontSize: '14px', color: '#ffffff', align: 'center', lineSpacing: 6 }).setOrigin(0.5);
-  scene.endGameContainer.add([endBg, scene.endTitle, scene.endSubtitle]);
 }
 
 function createTitleUI(scene) {
@@ -846,9 +1094,12 @@ function createTitleUI(scene) {
     fontFamily: 'monospace', fontSize: '13px', color: '#ffc83b',
   }).setOrigin(0.5);
 
-  scene.titleContainer.add([titleGlow, titleText, subtitle, legendText, scene.pressStartText, controlsNote]);
+  const recordsButtonHint = scene.add.text(W / 2, 450, '[ Presiona ABAJO (S) para ver Récords ]', {
+    fontFamily: 'monospace', fontSize: '12px', color: '#8899aa',
+  }).setOrigin(0.5);
 
-  // Contenedor de instrucciones
+  scene.titleContainer.add([titleGlow, titleText, subtitle, legendText, scene.pressStartText, controlsNote, recordsButtonHint]);
+
   scene.instructionsContainer = scene.add.container(0, 0).setVisible(false);
 
   const instBg = scene.add.rectangle(W / 2, H / 2, 640, 360, 0x080c14, 0.95).setStrokeStyle(3, 0xffd700, 0.9);
